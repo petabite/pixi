@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hello World</title>
+</head>
+<script src="https://pixijs.download/v5.1.6/pixi.min.js"></script>
+
+<body>
+    <script type="text/javascript">
+        let Application = PIXI.Application,
+            loader = PIXI.loader,
+            resources = PIXI.loader.resources,
+            Sprite = PIXI.Sprite;
+
+        //Create a Pixi Application
+        let app = new Application({
+            width: 256,
+            height: 256,
+            antialias: true,
+            transparent: false,
+            resolution: 1
+        });
+
+        app.renderer.view.style.position = "absolute";
+        app.renderer.view.style.display = "block";
+        app.renderer.autoResize = true;
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+
+        //Add the canvas that Pixi automatically created for you to the HTML document
+        document.body.appendChild(app.view);
+
+        loader
+            .add("images/cat.png")
+            .load(setup);
+
+        //Define any variables that are used in more than one function
+        let cat, state;
+
+        let up = keyboard("ArrowUp"),
+            left = keyboard("ArrowLeft"),
+            right = keyboard("ArrowRight"),
+            down = keyboard("ArrowDown")
+
+
+        function setup() {
+
+            //Create the `cat` sprite 
+            cat = new Sprite(resources["images/cat.png"].texture);
+            cat.vx = 0;
+            cat.vy = 0;
+            app.stage.addChild(cat);
+
+            up.press = () => {
+                cat.vy = -1
+            }
+
+            down.press = () => {
+                cat.vy = 1
+            }
+
+            left.press = () => {
+                cat.vx = -1
+            }
+
+            right.press = () => {
+                cat.vx = 1
+            }
+
+            //Set the game state
+            state = play;
+
+            //Start the game loop 
+            app.ticker.add(delta => gameLoop(delta));
+        }
+
+        function gameLoop(delta) {
+
+            //Update the current game state:
+            state(delta);
+        }
+
+        function play(delta) {
+
+            //Move the cat 1 pixel to the right each frame
+            cat.x += cat.vx
+            cat.y += cat.vy
+
+            if (up.isUp && down.isUp && left.isUp && right.isUp) {
+                cat.vx = 0;
+                cat.vy = 0;
+            }
+        }
+
+        function keyboard(value) {
+            let key = {};
+            key.value = value;
+            key.isDown = false;
+            key.isUp = true;
+            key.press = undefined;
+            key.release = undefined;
+            //The `downHandler`
+            key.downHandler = event => {
+                if (event.key === key.value) {
+                    if (key.isUp && key.press) key.press();
+                    key.isDown = true;
+                    key.isUp = false;
+                    event.preventDefault();
+                }
+            };
+
+            //The `upHandler`
+            key.upHandler = event => {
+                if (event.key === key.value) {
+                    if (key.isDown && key.release) key.release();
+                    key.isDown = false;
+                    key.isUp = true;
+                    event.preventDefault();
+                }
+            };
+
+            //Attach event listeners
+            const downListener = key.downHandler.bind(key);
+            const upListener = key.upHandler.bind(key);
+
+            window.addEventListener(
+                "keydown", downListener, false
+            );
+            window.addEventListener(
+                "keyup", upListener, false
+            );
+
+            // Detach event listeners
+            key.unsubscribe = () => {
+                window.removeEventListener("keydown", downListener);
+                window.removeEventListener("keyup", upListener);
+            };
+
+            return key;
+        }
+    </script>
+</body>
+<style>
+    * {
+        padding: 0;
+        margin: 0
+    }
+</style>
+
+</html>

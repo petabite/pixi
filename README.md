@@ -1,2 +1,4 @@
-# pixi
-pixi.js projects
+# pixi.js projects
+
+- cat
+- pixi shoota
